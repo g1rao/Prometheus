@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Metrics Generator
+metadata:
+  name: Metrics Generator
+  labels:
+    app: metrics
+spec:
+  selector:
+    matchLabels:
+      app: metrics
+  template:
+    metadata:
+      labels:
+        app: metrics
+    spec:
+      containers:
+        - name: metric-generator
+          image: metric-generator:latest
+          ports:
+            - containerPort: 8000
+
+        - name: prometheus
+          image: prom/prometheus
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=."
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: prometheus-config-volume
+              mountPath: /etc/prometheus/
+            - name: prometheus-storage-volume
+              mountPath: .
+
+        - name: grafana
+          image: grafana/grafana
+          ports:
+            - containerPort: 3000
